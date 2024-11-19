@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Run Python Online</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    socket.on('connect', () => {
+      console.log('Connected to server');
+      document.getElementById("code").addEventListener("keydown", function(e) {
+        if (e.key === "Tab") {
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + 1;
+        }
+      });
+    });
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+    socket.on('output', (data) => {
+      document.getElementById("output").textContent = data.output || data.error;
+    });
+  </script>
+</head>
+
+<body>
+  <h1>Python Code Runner</h1>
+  <textarea id="code" placeholder="Type Python code here..." rows="10" cols="50"></textarea><br>
+  <button id="run">Run</button>
+  <h2>Output:</h2>
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById("run").addEventListener("click", () => {
+      const code = document.getElementById("code").value;
+      socket.emit('run_code', code);
+    });
+  </script>
+</body>
+
+</html>
