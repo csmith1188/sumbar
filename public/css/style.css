@@ -1,0 +1,17 @@
+.codebox {
+    width: 400px;
+    height: auto;
+    overflow: auto;
+    border: 1px solid #000;
+    margin: 0px;
+    padding: 5px;
+    tab-size: 2;
+}
+
+#usercode {
+    min-height: 50px;
+    resize: vertical;
+    overflow: hidden;
+    padding: 5px;
+    margin: 0px;
+}

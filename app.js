@@ -4,6 +4,9 @@ const session = require('express-session');
 const socketIo = require('socket.io');
 const sharedSession = require('express-socket.io-session');
 const { spawn } = require("child_process");
+const sqlite3 = require('sqlite3').verbose();
+
+const db = new sqlite3.Database('./data/database.db');
 
 const app = express();
 
@@ -27,8 +30,22 @@ io.use(sharedSession(sessionMiddleware, {
     autoSave: true
 }));
 
+app.set('view engine', 'ejs');
+
+app.use(express.static('public'));
+
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.redirect('/problem/1');
+});
+
+app.get('/problem/:problemId', (req, res) => {
+    const problemId = req.params.problemId;
+    db.get("SELECT * FROM problems WHERE uid = ?", [problemId], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: "Problem not found." });
+        res.render('problem', { problem: row });
+        // res.json(row);
+    });
 });
 
 io.on('connection', (socket) => {
@@ -62,7 +79,13 @@ io.on('connection', (socket) => {
         // Handle process exit
         pythonProcess.on("close", (code) => {
             if (code === 0) {
-                socket.emit('output', { output });
+                db.run("INSERT INTO problems (solution, task_id) VALUES (?, 1)", [output], function (err) {
+                    if (err) {
+                        socket.emit('output', { error: `Database error: ${err.message}` });
+                    } else {
+                        socket.emit('output', { message: "Solution saved to database." });
+                    }
+                });
             } else {
                 socket.emit('output', { error });
             }
