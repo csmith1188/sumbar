@@ -10,7 +10,7 @@
 
 #usercode {
     min-height: 50px;
-    resize: vertical;
+    resize: none; /* Disable resize handle */
     overflow: hidden;
     padding: 5px;
     margin: 0px;

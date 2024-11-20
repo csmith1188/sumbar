@@ -49,52 +49,44 @@ app.get('/problem/:problemId', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('a user connected with session ID:', socket.handshake.sessionID);
-
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
+    console.log('User connected:', socket.handshake.sessionID);
 
     socket.on('run_code', (code) => {
         if (!code) {
-            return res.status(400).json({ error: "No code provided." });
+            return socket.emit('output', { error: "No code provided." });
         }
 
-        // Spawn a Python process to execute the code
-        const pythonProcess = spawn("python", ["-c", code]);
+        // Basic validation
+        if (code.includes("import os") || code.includes("subprocess")) {
+            return socket.emit('output', { error: "Unauthorized code detected." });
+        }
+
+        // Spawn a safe process
+        const pythonProcess = spawn("python", ["-c", code], { timeout: 5000 });
 
         let output = "";
         let error = "";
 
-        // Capture stdout
         pythonProcess.stdout.on("data", (data) => {
             output += data.toString();
         });
 
-        // Capture stderr
         pythonProcess.stderr.on("data", (data) => {
             error += data.toString();
         });
 
-        // Handle process exit
-        pythonProcess.on("close", (code) => {
-            if (code === 0) {
-                db.run("INSERT INTO problems (solution, task_id) VALUES (?, 1)", [output], function (err) {
-                    if (err) {
-                        socket.emit('output', { error: `Database error: ${err.message}` });
-                    } else {
-                        socket.emit('output', { message: "Solution saved to database." });
-                    }
-                });
+        pythonProcess.on("close", (exitCode) => {
+            if (exitCode === 0) {
+                socket.emit('output', { message: output.trim() });
             } else {
-                socket.emit('output', { error });
+                socket.emit('output', { error: error.trim() });
             }
         });
 
-        // Error handling for process spawn
         pythonProcess.on("error", (err) => {
             socket.emit('output', { error: `Execution error: ${err.message}` });
         });
     });
 });
+
 
