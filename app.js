@@ -45,17 +45,22 @@ function isAuthenticated(req, res, next) {
 };
 
 app.get('/', (req, res) => {
-    res.render('index');
+    res.render('index', { token: req.session.token });
 });
 
 app.get('/login', (req, res) => {
     if (req.query.token) {
-         let tokenData = jwt.decode(req.query.token);
-         req.session.token = tokenData;
-         res.redirect('/');
+        let tokenData = jwt.decode(req.query.token);
+        req.session.token = tokenData;
+        res.redirect('/');
     } else {
-         res.redirect(`${AUTH_URL}?redirectURL=${THIS_URL}`);
+        res.redirect(`${AUTH_URL}?redirectURL=${THIS_URL}`);
     };
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
 });
 
 app.get('/problem/:problemId', isAuthenticated, (req, res) => {

@@ -1,36 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <script src="/socket.io/socket.io.js"></script>
-</head>
-
-<body>
-  <h1>Python Code Runner</h1>
-  <% if (problem.prompt) { %>
-  <h2>Prompt:</h2>
-  <p>
-    <%= problem.prompt %>
-  </p>
-  <% } %>
-  <div id="precode" class="codebox">
-    <pre><%= problem.precode %></pre>
-  </div>
-  <textarea id="usercode" class="codebox"><%- problem.usercode %></textarea>
-  <div id="postcode" class="codebox">
-    <pre><%= problem.postcode %></pre>
-  </div>
-  <button id="run">Run</button>
-  <h2>Output:</h2>
-  <div id="outputBox">
-    <pre id="output"></pre>
-  </div>
+<%- include('partials/head') %>
+<h1>Python Code Runner</h1>
+<% if (problem.prompt) { %>
+<h2>Prompt:</h2>
+<p>
+  <%= problem.prompt %>
+</p>
+<% } %>
+<div id="precode" class="codebox">
+  <pre><%= problem.precode %></pre>
+</div>
+<textarea id="usercode" class="codebox"><%- problem.usercode %></textarea>
+<div id="postcode" class="codebox">
+  <pre><%= problem.postcode %></pre>
+</div>
+<button id="run">Run</button>
+<h2>Output:</h2>
+<div id="outputBox">
+  <pre id="output"></pre>
+</div>
 
 </body>
+<script src="/socket.io/socket.io.js"></script>
 <script>
   const precode = document.getElementById('precode');
   const postcode = document.getElementById('postcode');
@@ -69,5 +59,3 @@
     this.style.height = (this.scrollHeight) + 'px';
   });
 </script>
-
-</html>
