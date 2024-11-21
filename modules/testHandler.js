@@ -11,7 +11,7 @@ class TestHandler {
         this.unit = [1];
         this.tasks = [1];
         this.problems = [];
-        this.problemIndex = 0;
+        this.problemIndex = -1;
         // loop through the options and assign them to the class
         for (let key in options) {
             this[key] = options[key];
@@ -27,13 +27,22 @@ class TestHandler {
         });
     }
 
+    checkAnswer(answer) {
+        // check the answer
+        if (this.problems[this.problemIndex].solution === answer) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     nextProblem() {
         this.problemIndex++;
         // get the next problem
         if (this.problemIndex > this.problems.length) {
             return null;
         } else {
-            return this.problems[this.problemIndex - 1];
+            return this.problems[this.problemIndex];
         }
     }
 }

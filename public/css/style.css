@@ -1,10 +1,22 @@
+#content {
+    /* margin: auto; */
+    overflow-x: hidden;
+}
+
 .codebox {
-    width: 400px;
     height: auto;
     overflow: auto;
     margin: 0px;
     padding: 5px;
     tab-size: 2;
+    -moz-tab-size: 2;
+}
+
+#problemPrompt {
+    height: auto;
+    overflow: auto;
+    margin: 0px;
+    padding: 5px;
 }
 
 #precode {
@@ -16,6 +28,7 @@
 }
 
 #usercode {
+    width: calc(100% - 12px); /* 100% width minus left and right padding and border */
     border-width: 0px 1px 0px 1px;
     border-style: solid;
     border-color: #000;
@@ -32,4 +45,12 @@
     border-style: solid;
     border-color: #000;
     background-color: #ddd;
+}
+
+.correct {
+    color: green;
+}
+
+.incorrect {
+    color: red;
 }

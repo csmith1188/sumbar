@@ -13,9 +13,11 @@ const socketHandler = (socket) => {
     socket.on('nextProblem', () => {
         let problem = socket.testHandler.nextProblem();
         problem = {
-            precode : problem.precode,
-            usercode : problem.usercode,
-            postcode : problem.postcode
+            prompt: problem.prompt,
+            precode: problem.precode,
+            usercode: problem.usercode,
+            postcode: problem.postcode,
+            solution: problem.solution
         }
         if (problem) {
             socket.emit('problem', { problem: problem });
@@ -24,16 +26,20 @@ const socketHandler = (socket) => {
         }
     });
 
-    socket.on('run_code', (code) => {
-        if (!code) {
+    socket.on('run_code', (data) => {
+        if (!data.usercode) {
             return socket.emit('output', { error: "No code provided." });
         }
+
+        const precode = socket.testHandler.problems[socket.testHandler.problemIndex].precode + `\n`;
+        const postcode = socket.testHandler.problems[socket.testHandler.problemIndex].postcode + `\n`;
+        const usercode = data.usercode + `\n`;
 
         // Safe code to prevent malicious code execution
         let safeCode = "import builtins\ndel builtins.input\ndel builtins.open\ndel builtins.exec\ndel builtins.eval\ndel builtins.compile\ndel builtins.__import__\n"
 
         // Spawn a safe process
-        const pythonProcess = spawn("python", ["-c", safeCode + code], { timeout: 5000 });
+        const pythonProcess = spawn("python", ["-c", safeCode + precode + usercode + postcode], { timeout: 5000 });
 
         let output = "";
         let error = "";
@@ -48,7 +54,7 @@ const socketHandler = (socket) => {
 
         pythonProcess.on("close", (exitCode) => {
             if (exitCode === 0) {
-                socket.emit('output', { message: output.trim() });
+                socket.emit('output', { output: output.trim(), correct: socket.testHandler.checkAnswer(output) });
             } else {
                 socket.emit('output', { error: error.trim() });
             }

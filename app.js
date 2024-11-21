@@ -8,10 +8,35 @@ const sqlite3 = require('sqlite3').verbose();
 require('dotenv').config();
 const { socketHandler } = require('./modules/socketHandler');
 const SQLiteStore = require('connect-sqlite3')(session);
+const fetch = require('node-fetch');
 
-const AUTH_URL = process.env.AUTH_URL || "http://localhost:420/login";
-const THIS_URL = process.env.THIS_URL || "http://localhost:3000/login";
+const AUTH_URL = process.env.AUTH_URL + "/oauth" || "http://localhost:420/oauth";
+const THIS_URL = process.env.THIS_URL + "/login" || "http://localhost:3000/login";
 const PORT = process.env.PORT || 3000;
+const APIKEY = process.env.APIKEY;
+
+fetch(`${process.env.AUTH_URL}api/class/1dfz`, {
+    method: 'GET',
+    headers: {
+        'API': APIKEY,
+        'Content-Type': 'application/json'
+    }
+})
+    .then((response) => {
+        // Convert received data to JSON
+        return response.json();
+    })
+    .then((data) => {
+        // Log the data if the request is successful
+        console.log(data);
+    })
+    .catch((err) => {
+        // If there's a problem, handle it...
+        if (err) {
+            console.error('connection closed due to errors', err);
+            process.exit(1);
+        }
+    });
 
 const db = new sqlite3.Database('./data/database.db');
 
