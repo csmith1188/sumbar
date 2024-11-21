@@ -3,9 +3,9 @@ Integrate with formbar to show progress over time
 
 - ~~formbar auth~~ and db update (do i need a table or is fb_id enough?)
 - ~~db tables unit/course, questions~~
-- teacher makes quizzes per class
+- teacher makes testzes per class
 - teacher see all results
-- random/selected quiz
+- random/selected test
 - secure running python
 - copy detector
 - tutd per question

@@ -2,16 +2,34 @@
     width: 400px;
     height: auto;
     overflow: auto;
-    border: 1px solid #000;
     margin: 0px;
     padding: 5px;
     tab-size: 2;
 }
 
+#precode {
+    border-width: 1px 1px 0px 1px;
+    border-radius: 5px 5px 0px 0px;
+    border-style: solid;
+    border-color: #000;
+    background-color: #ddd;
+}
+
 #usercode {
+    border-width: 0px 1px 0px 1px;
+    border-style: solid;
+    border-color: #000;
     min-height: 50px;
     resize: none; /* Disable resize handle */
     overflow: hidden;
     padding: 5px;
     margin: 0px;
+}
+
+#postcode {
+    border-width: 0px 1px 1px 1px;
+    border-radius: 0px 0px 5px 5px;
+    border-style: solid;
+    border-color: #000;
+    background-color: #ddd;
 }

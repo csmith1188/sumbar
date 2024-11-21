@@ -1,0 +1,77 @@
+<%- include('partials/head') %>
+<h1>Python Code Runner</h1>
+
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const precode = document.createElement('div');
+  precode.id = 'precode';
+  precode.className = 'codebox';
+  precode.innerHTML = `<pre></pre>`;
+  document.body.appendChild(precode);
+
+  const usercode = document.createElement('textarea');
+  usercode.id = 'usercode';
+  usercode.className = 'codebox';
+  document.body.appendChild(usercode);
+  usercode.addEventListener("keydown", function(e) {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+      this.selectionStart = this.selectionEnd = start + 1;
+    }
+  });
+
+  usercode.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+  });
+
+  const postcode = document.createElement('div');
+  postcode.id = 'postcode';
+  postcode.className = 'codebox';
+  postcode.innerHTML = `<pre></pre>`;
+  document.body.appendChild(postcode);
+
+  const runButton = document.createElement('button');
+  runButton.id = 'run';
+  runButton.textContent = 'Run Code';
+  document.body.appendChild(runButton);
+  runButton.addEventListener("click", () => {
+    socket.emit('run_code', usercode.value);
+  });
+
+  const output = document.createElement('div');
+  output.id = 'outputBox';
+  output.className = 'codebox';
+  output.innerHTML = '<pre id="output"></pre>';
+  document.body.appendChild(output);
+
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('Connected to server');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+  });
+
+  socket.on('handlerReady', (data) => {
+    console.log(data.message);
+    socket.emit('nextProblem');
+  });
+
+  socket.on('problem', (data) => {
+    console.log(data.problem);
+    precode.querySelector('pre').textContent = data.problem.precode;
+    usercode.value = data.problem.usercode;
+    postcode.querySelector('pre').textContent = data.problem.postcode;
+  });
+
+  socket.on('output', (data) => {
+    output.textContent = data.output || data.error;
+  });
+</script>

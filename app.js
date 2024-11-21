@@ -7,22 +7,24 @@ const { spawn } = require("child_process");
 const sqlite3 = require('sqlite3').verbose();
 require('dotenv').config();
 const { socketHandler } = require('./modules/socketHandler');
+const SQLiteStore = require('connect-sqlite3')(session);
 
 const AUTH_URL = process.env.AUTH_URL || "http://localhost:420/login";
 const THIS_URL = process.env.THIS_URL || "http://localhost:3000/login";
+const PORT = process.env.PORT || 3000;
 
 const db = new sqlite3.Database('./data/database.db');
 
 const app = express();
-
-const server = app.listen(3000, () => {
-    console.log('listening on *:3000');
+const server = app.listen(PORT, () => {
+    console.log(`listening on *:${PORT}`);
 });
 
 const io = socketIo(server);
 
 const sessionMiddleware = session({
-    secret: 'your-secret-key',
+    store: new SQLiteStore({ db: 'sessions.db', dir: './data' }),
+    secret: process.env.SESSIONKEY || "putakeyhere",
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
@@ -65,7 +67,6 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/teacher', isAuthenticated, (req, res) => {
-    
     const userClass = req.session.token.class;
     db.all("SELECT * FROM tests WHERE class = ?", [userClass], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -73,15 +74,18 @@ app.get('/teacher', isAuthenticated, (req, res) => {
     });
 });
 
+app.get('/test/:testId', isAuthenticated, (req, res) => {
+    req.session.testId = req.params.testId;
+    res.render('test', { token: req.session.token });
+});
+
 app.get('/problem/:problemId', isAuthenticated, (req, res) => {
     const problemId = req.params.problemId;
     db.get("SELECT * FROM problems WHERE uid = ?", [problemId], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: "Problem not found." });
-        res.render('quiz', { problem: row });
+        res.render('test', { problem: row });
     });
 });
 
 io.on('connection', socketHandler);
-
-
