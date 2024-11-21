@@ -1,0 +1,30 @@
+<%- include('partials/head') %>
+<% if (token.class) { %>
+  <h1><%= token.class %></h1>
+  <h2>Tests</h2>
+  <% if (tests && tests.length > 0) { %>
+    <ul>
+      <% tests.forEach(function(test) { %>
+        <li><a href="/test/<%= test.uid %>"><%= test.name %></a><br><%- test.desc %></li>
+      <% }); %>
+    </ul>
+  <% } else { %>
+    <p>No tests for this class.</p>
+  <% } %>
+<% } else { %>
+  <p>No class selected.</p>
+<% } %>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('Connected to server');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+  });
+
+</script>

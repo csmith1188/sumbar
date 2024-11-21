@@ -52,6 +52,7 @@ app.get('/login', (req, res) => {
     if (req.query.token) {
         let tokenData = jwt.decode(req.query.token);
         req.session.token = tokenData;
+        console.log(req.session.token);
         res.redirect('/');
     } else {
         res.redirect(`${AUTH_URL}?redirectURL=${THIS_URL}`);
@@ -61,6 +62,15 @@ app.get('/login', (req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/');
+});
+
+app.get('/teacher', isAuthenticated, (req, res) => {
+    
+    const userClass = req.session.token.class;
+    db.all("SELECT * FROM tests WHERE class = ?", [userClass], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.render('teacher', { token: req.session.token, tests: rows });
+    });
 });
 
 app.get('/problem/:problemId', isAuthenticated, (req, res) => {
