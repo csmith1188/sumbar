@@ -1,5 +1,8 @@
 const { TestHandler } = require('./testHandler');
 const { spawn } = require('child_process');
+const sqlite3 = require('sqlite3').verbose();
+
+const db = new sqlite3.Database('./data/database.db');
 
 const socketHandler = (socket) => {
     console.log('User connected:', socket.handshake.sessionID);
@@ -12,14 +15,14 @@ const socketHandler = (socket) => {
 
     socket.on('nextProblem', () => {
         let problem = socket.testHandler.nextProblem();
-        problem = {
-            prompt: problem.prompt,
-            precode: problem.precode,
-            usercode: problem.usercode,
-            postcode: problem.postcode,
-            solution: problem.solution
-        }
         if (problem) {
+            problem = {
+                prompt: problem.prompt,
+                precode: problem.precode,
+                usercode: problem.usercode,
+                postcode: problem.postcode,
+                solution: problem.solution
+            }
             socket.emit('problem', { problem: problem });
         } else {
             socket.emit('testComplete', { message: 'Test Complete' });
@@ -54,7 +57,12 @@ const socketHandler = (socket) => {
 
         pythonProcess.on("close", (exitCode) => {
             if (exitCode === 0) {
-                socket.emit('output', { output: output.trim(), correct: socket.testHandler.checkAnswer(output) });
+                let correct = socket.testHandler.checkAnswer(output);
+                db.run(
+                    `INSERT OR REPLACE INTO results (user_id, test_id, problem_id, confidence, result) VALUES (?, ?, ?, ?, ?);`,
+                    [socket.handshake.session.token.id, socket.testHandler.test, socket.testHandler.get_problem_id(), data.confidence, correct ? 1 : 0]
+                );
+                socket.emit('output', { output: output.trim(), correct: correct });
             } else {
                 socket.emit('output', { error: error.trim() });
             }

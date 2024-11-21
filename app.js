@@ -55,7 +55,6 @@ app.get('/login', (req, res) => {
     if (req.query.token) {
         let tokenData = jwt.decode(req.query.token);
         req.session.token = tokenData;
-        console.log(req.session.token);
         res.redirect('/');
     } else {
         res.redirect(`${AUTH_URL}?redirectURL=${THIS_URL}`);

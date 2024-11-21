@@ -27,6 +27,11 @@ class TestHandler {
         });
     }
 
+    get_problem_id() {
+        // get the current problem
+        return this.problems[this.problemIndex].problem_id;
+    }
+
     checkAnswer(answer) {
         // check the answer
         if (this.problems[this.problemIndex].solution === answer) {
@@ -39,7 +44,7 @@ class TestHandler {
     nextProblem() {
         this.problemIndex++;
         // get the next problem
-        if (this.problemIndex > this.problems.length) {
+        if (this.problemIndex >= this.problems.length) {
             return null;
         } else {
             return this.problems[this.problemIndex];

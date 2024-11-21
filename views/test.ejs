@@ -59,6 +59,7 @@
   content.appendChild(output);
 
   function showThumbs() {
+    buttonContainer.innerHTML = '';
     const upButton = document.createElement('button');
     upButton.id = 'upButton';
     upButton.textContent = 'Up';
@@ -93,6 +94,17 @@
     });
   }
 
+  function addNextButton() {
+    buttonContainer.innerHTML = '';
+    const nextButton = document.createElement('button');
+    nextButton.id = 'nextButton';
+    nextButton.textContent = 'Next';
+    buttonContainer.appendChild(nextButton);
+    nextButton.addEventListener("click", () => {
+      socket.emit('nextProblem');
+    });
+  }
+
   const socket = io();
 
   socket.on('connect', () => {
@@ -124,6 +136,11 @@
       output.classList.add('incorrect');
       output.classList.remove('correct');
     }
+    addNextButton();
     output.querySelector('pre').textContent = data.output || data.error;
+  });
+
+  socket.on('testComplete', () => {
+    buttonContainer.innerHTML = '';
   });
 </script>
