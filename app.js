@@ -42,9 +42,22 @@ app.set('view engine', 'ejs');
 
 app.use(express.static('public'));
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 function isAuthenticated(req, res, next) {
     if (req.session.token) next()
     else res.redirect('/login')
+};
+
+function isAuthenticated(req, res, next) {
+    if (req.session.token) next()
+    else res.redirect('/login')
+};
+
+function isTeacher(req, res, next) {
+    if (req.session.token.permissions >= 4) next()
+    else res.render('error', { message: "You are not authorized to view this page." });
 };
 
 app.get('/', (req, res) => {
@@ -79,13 +92,30 @@ app.get('/test/:testId', isAuthenticated, (req, res) => {
     res.render('test', { token: req.session.token });
 });
 
-app.get('/problem/:problemId', isAuthenticated, (req, res) => {
-    const problemId = req.params.problemId;
-    db.get("SELECT * FROM problems WHERE uid = ?", [problemId], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!row) return res.status(404).json({ error: "Problem not found." });
-        res.render('test', { problem: row });
+app.get('/newtest', isAuthenticated, isTeacher, (req, res) => {
+    res.render('newtest', { token: req.session.token });
+});
+
+app.post('/newtest', isAuthenticated, isTeacher, (req, res) => {
+    if (!req.body.testName || !req.body.class || !req.body.description) return res.status(400).render('error', { message: "Please fill out all fields." });
+    if (req.body.class !== req.session.token.class) return res.status(400).render('error', { message: "You can only create tests for your own class." });
+    db.run("INSERT INTO tests (name, class, desc) VALUES (?, ?, ?)", [req.body.testName, req.body.class, req.body.description], (err) => {
+        if (err) return res.status(400).render('error', { message: "There was an error.\n\n" + err.message });
+        res.redirect('/teacher');
     });
 });
+
+app.get('/edittest/:testId', isAuthenticated, isTeacher, (req, res) => {
+    if (!req.params.testId) return res.status(400).render('error', { message: "No test ID provided." });
+    db.get("SELECT * FROM tests WHERE uid = ?", [req.params.testId], (err, row) => {
+        if (err) return res.status(500).render('error', { message: err.message });
+        if (!row) return res.status(404).render('error', { message: "Test not found." });
+        db.all("SELECT problems.uid, problems.prompt FROM problems JOIN testSelections ON problems.uid = testSelections.problem_id WHERE testSelections.test_id = ?;", [req.params.testId], (err, row) => {
+            if (err) return res.status(500).render('error', { message: err.message });
+            res.render('edittest', { token: req.session.token, problems: row });
+        });
+    });
+});
+
 
 io.on('connection', socketHandler);

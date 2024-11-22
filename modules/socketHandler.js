@@ -54,7 +54,7 @@ const socketHandler = (socket) => {
                 let correct = socket.testHandler.checkAnswer(output);
                 db.run(
                     `INSERT OR REPLACE INTO results (user_id, test_id, problem_id, submission, confidence, result) VALUES (?, ?, ?, ?, ?, ?);`,
-                    [socket.handshake.session.token.id, socket.testHandler.test, socket.testHandler.get_problem_id(), output, data.confidence, correct ? 1 : 0]
+                    [socket.handshake.session.token.id, socket.testHandler.test, socket.testHandler.get_problem_id(), usercode, data.confidence, correct ? 1 : 0]
                 );
                 socket.emit('output', { output: output, correct: correct });
             } else {

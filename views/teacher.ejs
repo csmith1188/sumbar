@@ -5,12 +5,17 @@
   <% if (tests && tests.length > 0) { %>
     <ul>
       <% tests.forEach(function(test) { %>
-        <li><a href="/test/<%= test.uid %>"><%= test.name %></a><br><%- test.desc %></li>
+        <li><a href="/test/<%= test.uid %>"><%= test.name %></a></li>
+        <ul>
+          <li><%- test.desc %></li>
+          <li><a href="/edittest/<%= test.uid %>">Edit Test</a></li>
+        </ul>
       <% }); %>
     </ul>
   <% } else { %>
     <p>No tests for this class.</p>
   <% } %>
+  <p><a href="/newtest">Make new Test</a></p>
 <% } else { %>
   <p>No class selected.</p>
 <% } %>
@@ -28,3 +33,4 @@
   });
 
 </script>
+<%- include('partials/foot') %>

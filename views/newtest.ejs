@@ -1,0 +1,23 @@
+<%- include('partials/head') %>
+
+<form action="/newtest" method="POST">
+    <div>
+        <label for="testName">Test Name:</label>
+        <input type="text" id="testName" name="testName" required>
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
+    </div>
+    <div>
+        <label for="class">Class:</label>
+        <select id="class" name="class" required>
+            <option value="<%- token.class %>"><%- token.class %></option>
+        </select>
+    </div>
+    <div>
+        <button type="submit">Submit</button>
+    </div>
+</form>
+
+<%- include('partials/foot') %>

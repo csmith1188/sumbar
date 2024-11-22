@@ -1,0 +1,13 @@
+<%- include('partials/head') %>
+<% problems.forEach(function(problem) { %>
+    <div class="problem">
+        <p><%= problem.prompt %></p>
+        <a href="/view/<%= problem.uid %>">View</a>
+        <a href="/remove/<%= problem.uid %>">Remove</a>
+    </div>
+<% }); %>
+</body>
+<script>
+    
+</script>
+<%- include('partials/foot') %>

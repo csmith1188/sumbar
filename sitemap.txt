@@ -1,0 +1,8 @@
+/
+
+/login
+
+/tests -> if teacher, manage tests. if student, take assigned tests
+
+/edit/:CUTP/:id -> if teacher, edit course, unit, task, problem, with id
+
