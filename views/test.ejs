@@ -8,6 +8,16 @@
 <script>
   const content = document.getElementById('content');
 
+  /*
+   ######                                               ######
+   #     # #####   ####  #####  #      ###### #    #    #     #  ####  #    #
+   #     # #    # #    # #    # #      #      ##  ##    #     # #    #  #  #
+   ######  #    # #    # #####  #      #####  # ## #    ######  #    #   ##
+   #       #####  #    # #    # #      #      #    #    #     # #    #   ##
+   #       #   #  #    # #    # #      #      #    #    #     # #    #  #  #
+   #       #    #  ####  #####  ###### ###### #    #    ######   ####  #    #
+
+  */
   const problemPrompt = document.createElement('div');
   problemPrompt.id = 'problemPrompt';
   const loader = document.createElement('img');
@@ -58,6 +68,17 @@
   output.innerHTML = '<pre id="output"></pre>';
   content.appendChild(output);
 
+  /*
+    #####
+   #     #  ####  #    # ##### #####   ####  #       ####
+   #       #    # ##   #   #   #    # #    # #      #
+   #       #    # # #  #   #   #    # #    # #       ####
+   #       #    # #  # #   #   #####  #    # #           #
+   #     # #    # #   ##   #   #   #  #    # #      #    #
+    #####   ####  #    #   #   #    #  ####  ######  ####
+
+  */
+
   function showThumbs() {
     buttonContainer.innerHTML = '';
     const upButton = document.createElement('button');
@@ -87,6 +108,7 @@
     downButton.textContent = 'Down';
     buttonContainer.appendChild(downButton);
     downButton.addEventListener("click", () => {
+      buttonContainer.appendChild(loader);
       socket.emit('run_code', {
         usercode: usercode.value,
         confidence: 'down'
@@ -101,9 +123,35 @@
     nextButton.textContent = 'Next';
     buttonContainer.appendChild(nextButton);
     nextButton.addEventListener("click", () => {
+      output.innerHTML = '<pre></pre>';
+      buttonContainer.appendChild(loader);
       socket.emit('nextProblem');
     });
   }
+
+  function addGradeButton() {
+    buttonContainer.innerHTML = '';
+    const gradeButton = document.createElement('button');
+    gradeButton.id = 'gradeButton';
+    gradeButton.textContent = 'Grade';
+    buttonContainer.appendChild(gradeButton);
+    gradeButton.addEventListener("click", () => {
+      output.innerHTML = '<pre></pre>';
+      buttonContainer.appendChild(loader);
+      socket.emit('grade');
+    });
+  }
+
+  /*
+
+    ####   ####   ####  #    # ###### #####
+   #      #    # #    # #   #  #        #
+    ####  #    # #      ####   #####    #
+        # #    # #      #  #   #        #
+   #    # #    # #    # #   #  #        #
+    ####   ####   ####  #    # ######   #
+
+  */
 
   const socket = io();
 
@@ -121,7 +169,26 @@
   });
 
   socket.on('problem', (data) => {
-    problemPrompt.textContent = data.problem.prompt;
+    problemPrompt.innerHTML = '';
+    if (data.problem.result == 1) {
+      problemPrompt.innerHTML = `You've gotten this problem correct before. `;
+    } else if (data.problem.result == 0) {
+      problemPrompt.innerHTML = `You've gotten this problem incorrect before. `;
+    } else {
+      problemPrompt.innerHTML = `You've never seen this problem before. `;
+    }
+    switch (data.problem.confidence) {
+      case 'up':
+        problemPrompt.innerHTML += `You seemed pretty confident. `;
+        break;
+      case 'wiggle':
+        problemPrompt.innerHTML += `You weren't sure of yourself. `;
+        break;
+      case 'down':
+        problemPrompt.innerHTML += `You didn't think you'd get this one. `;
+        break;
+    }
+    problemPrompt.innerHTML += `<p>${data.problem.prompt}</p>`;
     precode.querySelector('pre').textContent = data.problem.precode;
     usercode.value = data.problem.usercode;
     postcode.querySelector('pre').textContent = data.problem.postcode;
@@ -129,6 +196,13 @@
   });
 
   socket.on('output', (data) => {
+
+    navigator.clipboard.writeText(data.output).then(() => {
+      console.log('Output copied to clipboard');
+    }).catch(err => {
+      console.error('Failed to copy output: ', err);
+    });
+
     if (data.correct) {
       output.classList.add('correct');
       output.classList.remove('incorrect');
@@ -142,5 +216,6 @@
 
   socket.on('testComplete', () => {
     buttonContainer.innerHTML = '';
+    addGradeButton()
   });
 </script>

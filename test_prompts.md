@@ -23,6 +23,13 @@ Write a function count_occurrences(lst, value) that takes a list and a value as 
 -   Input: ['apple', 'banana', 'apple', 'cherry'], 'apple'
 -   Output: 2
 
+def count_occurrences(lst, value):
+	total = 0
+	for fruit in lst:
+		if fruit == value:
+			total += 1
+	return total
+
 * * * * *
 
 **3. Common Elements**

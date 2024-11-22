@@ -16,13 +16,7 @@ const socketHandler = (socket) => {
     socket.on('nextProblem', () => {
         let problem = socket.testHandler.nextProblem();
         if (problem) {
-            problem = {
-                prompt: problem.prompt,
-                precode: problem.precode,
-                usercode: problem.usercode,
-                postcode: problem.postcode,
-                solution: problem.solution
-            }
+            problem.solution = undefined;
             socket.emit('problem', { problem: problem });
         } else {
             socket.emit('testComplete', { message: 'Test Complete' });
@@ -59,10 +53,10 @@ const socketHandler = (socket) => {
             if (exitCode === 0) {
                 let correct = socket.testHandler.checkAnswer(output);
                 db.run(
-                    `INSERT OR REPLACE INTO results (user_id, test_id, problem_id, confidence, result) VALUES (?, ?, ?, ?, ?);`,
-                    [socket.handshake.session.token.id, socket.testHandler.test, socket.testHandler.get_problem_id(), data.confidence, correct ? 1 : 0]
+                    `INSERT OR REPLACE INTO results (user_id, test_id, problem_id, submission, confidence, result) VALUES (?, ?, ?, ?, ?, ?);`,
+                    [socket.handshake.session.token.id, socket.testHandler.test, socket.testHandler.get_problem_id(), output, data.confidence, correct ? 1 : 0]
                 );
-                socket.emit('output', { output: output.trim(), correct: correct });
+                socket.emit('output', { output: output, correct: correct });
             } else {
                 socket.emit('output', { error: error.trim() });
             }
@@ -72,6 +66,15 @@ const socketHandler = (socket) => {
             socket.emit('output', { error: `Execution error: ${err.message}` });
         });
     });
+
+    socket.on('grade', () => {
+        let analysis = socket.testHandler.analyzeResults();
+        db.run(`INSERT OR REPLACE INTO analysis (test_id, user_id, correct, confidence, confRatio, total) VALUES (?, ?, ?, ?, ?, ?);`,
+            [socket.testHandler.test, socket.handshake.session.token.id, analysis.correct, analysis.confidence, analysis.confRatio, analysis.total]
+        )
+    
+    });
+
 }
 
 exports.socketHandler = socketHandler;
