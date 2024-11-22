@@ -92,6 +92,15 @@ app.get('/test/:testId', isAuthenticated, (req, res) => {
     res.render('test', { token: req.session.token });
 });
 
+app.get('/problem/:problemId', isAuthenticated, (req, res) => {
+    const problemId = req.params.problemId;
+    db.get("SELECT * FROM problems WHERE uid = ?", [problemId], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(404).json({ error: "Problem not found." });
+        res.render('test', { problem: row });
+    });
+});
+
 app.get('/newtest', isAuthenticated, isTeacher, (req, res) => {
     res.render('newtest', { token: req.session.token });
 });
@@ -110,9 +119,9 @@ app.get('/edittest/:testId', isAuthenticated, isTeacher, (req, res) => {
     db.get("SELECT * FROM tests WHERE uid = ?", [req.params.testId], (err, row) => {
         if (err) return res.status(500).render('error', { message: err.message });
         if (!row) return res.status(404).render('error', { message: "Test not found." });
-        db.all("SELECT problems.uid, problems.prompt FROM problems JOIN testSelections ON problems.uid = testSelections.problem_id WHERE testSelections.test_id = ?;", [req.params.testId], (err, row) => {
+        db.all("SELECT problems.uid AS problem_id, problems.language, problems.prompt, problems.precode, problems.usercode, problems.postcode, problems.solution, problems.match, tasks.uid AS task_id, tasks.name AS task_name, tasks.desc AS task_desc, units.uid AS unit_id, units.name AS unit_name, units.desc AS unit_desc, courses.uid AS course_id, courses.name AS course_name, courses.class AS course_class FROM testSelections JOIN problems ON testSelections.problem_id = problems.uid JOIN tasks ON problems.task_id = tasks.uid JOIN units ON tasks.unit_id = units.uid JOIN courses ON units.course_id = courses.uid WHERE testSelections.test_id = ?;", [req.params.testId], (err, rows) => {
             if (err) return res.status(500).render('error', { message: err.message });
-            res.render('edittest', { token: req.session.token, problems: row });
+            res.render('edittest', { token: req.session.token, test: row, problems: rows });
         });
     });
 });

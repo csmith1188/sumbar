@@ -1,13 +1,28 @@
 <%- include('partials/head') %>
+
 <% problems.forEach(function(problem) { %>
     <div class="problem">
-        <p><%= problem.prompt %></p>
+        <!-- <%- JSON.stringify(problem) %> -->
+        <details>
+            <summary>
+                <span class="tag courseTag"><%= problem.course_name %></span> ||
+                <span class="tag unitTag"><%= problem.unit_name %></span> ||
+                <span class="tag taskTag"><%= problem.task_name %></span> ||
+                <%= problem.prompt %>
+            </summary>
+            <p><pre><%= problem.precode %></pre></p>
+            <p><pre><%= problem.usercode %></pre></p>
+            <p><pre><%= problem.postcode %></pre></p>
+            <p><pre><%= problem.match %></pre></p>
+          </details>
         <a href="/view/<%= problem.uid %>">View</a>
         <a href="/remove/<%= problem.uid %>">Remove</a>
     </div>
 <% }); %>
+    <div></div>
 </body>
+<script src="/socket.io/socket.io.js"></script>
 <script>
-    
+
 </script>
 <%- include('partials/foot') %>
