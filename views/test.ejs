@@ -157,6 +157,7 @@
 
   socket.on('connect', () => {
     console.log('Connected to server');
+    socket.emit('startTest');
   });
 
   socket.on('disconnect', () => {
@@ -171,9 +172,9 @@
   socket.on('problem', (data) => {
     problemPrompt.innerHTML = '';
     if (data.problem.result == 1) {
-      problemPrompt.innerHTML = `You've gotten this problem correct before. `;
+      problemPrompt.innerHTML = `<span class="correct">You've gotten this problem correct before. </span>`;
     } else if (data.problem.result == 0) {
-      problemPrompt.innerHTML = `You've gotten this problem incorrect before. `;
+      problemPrompt.innerHTML = `<span class="incorrect">You've gotten this problem incorrect before. </span>`;
     } else {
       problemPrompt.innerHTML = `You've never seen this problem before. `;
     }

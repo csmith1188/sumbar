@@ -1,28 +1,181 @@
 <%- include('partials/head') %>
+<div id="content">
 
-<% problems.forEach(function(problem) { %>
-    <div class="problem">
-        <!-- <%- JSON.stringify(problem) %> -->
-        <details>
-            <summary>
-                <span class="tag courseTag"><%= problem.course_name %></span> ||
-                <span class="tag unitTag"><%= problem.unit_name %></span> ||
-                <span class="tag taskTag"><%= problem.task_name %></span> ||
-                <%= problem.prompt %>
-            </summary>
-            <p><pre><%= problem.precode %></pre></p>
-            <p><pre><%= problem.usercode %></pre></p>
-            <p><pre><%= problem.postcode %></pre></p>
-            <p><pre><%= problem.match %></pre></p>
-          </details>
-        <a href="/view/<%= problem.uid %>">View</a>
-        <a href="/remove/<%= problem.uid %>">Remove</a>
+  <% problems.forEach(function(problem) { %>
+  <div class="problem">
+    <details>
+      <summary>
+        <span class="tag courseTag"><%= problem.course_name %></span> ||
+        <span class="tag unitTag"><%= problem.unit_name %></span> ||
+        <span class="tag taskTag"><%= problem.task_name %></span> ||
+        <%= problem.prompt %>
+      </summary>
+      <p>
+      <pre><%= problem.precode %></pre>
+      </p>
+      <p>
+      <pre><%= problem.usercode %></pre>
+      </p>
+      <p>
+      <pre><%= problem.postcode %></pre>
+      </p>
+      <p>
+      <pre><%= problem.match %></pre>
+      </p>
+    </details>
+    <a href="/view/<%= problem.uid %>">View</a>
+    <a href="/remove/<%= problem.uid %>">Remove</a>
+  </div>
+  <% }); %>
+  <div id="addBox">
+    <select id="courseSelect">
+      <option value="">Loading...</option>
+    </select>
+    <select id="unitSelect">
+      <option value="">Select Course</option>
+    </select>
+    <select id="taskSelect">
+      <option value="">Select Unit</option>
+    </select>
+    <select id="problemSelect">
+      <option value="">Select Task</option>
+    </select>
+    <div id="problemBox">
+
     </div>
-<% }); %>
-    <div></div>
+  </div>
+</div>
+
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <script>
+  const addBox = document.getElementById('addBox');
+  const courseSelect = document.getElementById('courseSelect');
+  const unitSelect = document.getElementById('unitSelect');
+  const taskSelect = document.getElementById('taskSelect');
+  const problemSelect = document.getElementById('problemSelect');
+  const problemBox = document.getElementById('problemBox');
+  let problems = [];
+  let problem = null;
 
+  problemSelect.addEventListener('change', () => {
+    if (problemSelect.value === 'new') {
+      problem = {
+        course_id: courseSelect.value,
+        unit_id: unitSelect.value,
+        task_id: taskSelect.value,
+        prompt: '',
+        precode: '',
+        usercode: '',
+        postcode: '',
+        match: ''
+      };
+    } else {
+      problem = problems.find(p => p.uid == problemSelect.value);
+    }
+
+    problemBox.innerHTML = '';
+
+    const promptTextarea = document.createElement('textarea');
+    promptTextarea.id = 'precode';
+    promptTextarea.classList.add('codebox');
+    promptTextarea.textContent = problem.prompt;
+
+    const precodeTextarea = document.createElement('textarea');
+    precodeTextarea.id = 'precode';
+    precodeTextarea.classList.add('codebox');
+    precodeTextarea.textContent = problem.precode;
+
+    const usercodeTextarea = document.createElement('textarea');
+    usercodeTextarea.id = 'usercode';
+    usercodeTextarea.classList.add('codebox');
+    usercodeTextarea.textContent = problem.usercode;
+
+    const postcodeTextarea = document.createElement('textarea');
+    postcodeTextarea.id = 'postcode';
+    postcodeTextarea.classList.add('codebox');
+    postcodeTextarea.textContent = problem.postcode;
+
+    const matchTextarea = document.createElement('textarea');
+    matchTextarea.id = 'match';
+    matchTextarea.classList.add('codebox');
+    matchTextarea.textContent = problem.match;
+
+    const saveButton = document.createElement('button');
+    saveButton.id = 'save';
+    saveButton.textContent = 'Save';
+
+    problemBox.appendChild(promptTextarea);
+    problemBox.appendChild(precodeTextarea);
+    problemBox.appendChild(usercodeTextarea);
+    problemBox.appendChild(postcodeTextarea);
+    problemBox.appendChild(matchTextarea);
+    problemBox.appendChild(saveButton);
+  });
+
+  const socket = io();
+
+  socket.on('connect', () => {
+    console.log('Connected to server');
+    socket.emit('getCourses');
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+  });
+
+  socket.on('courseList', (data) => {
+    courseSelect.innerHTML = '';
+    data.courses.forEach(course => {
+      const option = document.createElement('option');
+      option.value = course.uid;
+      option.textContent = course.name;
+      courseSelect.appendChild(option);
+    });
+    socket.emit('getUnits', {
+      course_id: courseSelect.value
+    });
+  });
+
+  socket.on('unitList', (data) => {
+    unitSelect.innerHTML = '';
+    data.units.forEach(unit => {
+      const option = document.createElement('option');
+      option.value = unit.uid;
+      option.textContent = unit.name;
+      unitSelect.appendChild(option);
+    });
+    socket.emit('getTasks', {
+      unit_id: unitSelect.value
+    });
+  });
+
+  socket.on('taskList', (data) => {
+    taskSelect.innerHTML = '';
+    data.tasks.forEach(task => {
+      const option = document.createElement('option');
+      option.value = task.uid;
+      option.textContent = task.name;
+      taskSelect.appendChild(option);
+    });
+    socket.emit('getProblems', {
+      task_id: taskSelect.value
+    });
+  });
+
+  socket.on('problemList', (data) => {
+    problemSelect.innerHTML = '';
+    const option = document.createElement('option');
+    option.value = "new";
+    option.textContent = "New Problem";
+    problemSelect.appendChild(option);
+    data.problems.forEach(problem => {
+      const option = document.createElement('option');
+      option.value = problem.uid;
+      option.textContent = problem.prompt;
+      problemSelect.appendChild(option);
+    });
+    problems = data.problems;
+  });
 </script>
 <%- include('partials/foot') %>

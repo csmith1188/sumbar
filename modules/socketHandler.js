@@ -7,11 +7,13 @@ const db = new sqlite3.Database('./data/database.db');
 const socketHandler = (socket) => {
     console.log('User connected:', socket.handshake.sessionID);
 
-    (async () => {
-        socket.testHandler = new TestHandler(socket.handshake.session, socket.handshake.session.testId);
-        await socket.testHandler.generateTest();
-        socket.emit('handlerReady', { message: 'Test Handler Ready' });
-    })();
+    socket.on('startTest', (data) => {
+        (async () => {
+            socket.testHandler = new TestHandler(socket.handshake.session, socket.handshake.session.testId);
+            await socket.testHandler.generateTest();
+            socket.emit('handlerReady', { message: 'Test Handler Ready' });
+        })();
+    });
 
     socket.on('nextProblem', () => {
         let problem = socket.testHandler.nextProblem();
@@ -72,7 +74,35 @@ const socketHandler = (socket) => {
         db.run(`INSERT OR REPLACE INTO analysis (test_id, user_id, correct, confidence, confRatio, total) VALUES (?, ?, ?, ?, ?, ?);`,
             [socket.testHandler.test, socket.handshake.session.token.id, analysis.correct, analysis.confidence, analysis.confRatio, analysis.total]
         )
-    
+
+    });
+
+    socket.on('getCourses', () => {
+        db.all("SELECT * FROM courses", (err, row) => {
+            if (err) return socket.emit('error', { error: err.message });
+            socket.emit('courseList', { courses: row });
+        });
+    });
+
+    socket.on('getUnits', (data) => {
+        db.all("SELECT * FROM units WHERE course_id = ?", [data.course_id], (err, row) => {
+            if (err) return socket.emit('error', { error: err.message });
+            socket.emit('unitList', { units: row });
+        });
+    });
+
+    socket.on('getTasks', (data) => {
+        db.all("SELECT * FROM tasks WHERE unit_id = ?", [data.unit_id], (err, row) => {
+            if (err) return socket.emit('error', { error: err.message });
+            socket.emit('taskList', { tasks: row });
+        });
+    });
+
+    socket.on('getProblems', (data) => {
+        db.all("SELECT * FROM problems WHERE task_id = ?", [data.task_id], (err, row) => {
+            if (err) return socket.emit('error', { error: err.message });
+            socket.emit('problemList', { problems: row });
+        });
     });
 
 }
