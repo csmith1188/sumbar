@@ -105,6 +105,12 @@ const socketHandler = (socket) => {
         });
     });
 
+    socket.on('saveProblem', (data) => {
+        db.run(`INSERT OR REPLACE INTO problems (uid, task_id, language, prompt, precode, usercode, postcode, solution, match) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            [data.uid, data.task_id, data.language, data.prompt, data.precode, data.usercode, data.postcode, data.solution, data.match]
+        );
+    });
+
 }
 
 exports.socketHandler = socketHandler;

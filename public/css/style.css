@@ -4,13 +4,18 @@
 }
 
 .codebox {
-    height: auto;
-    overflow: auto;
+    display: block;
+    width: 100%; /* 100% width minus padding and border */
+    height: auto; /* Fit content */
+    overflow: hidden; /* Prevent scrollbars */
     margin: 0px;
     padding: 5px;
     tab-size: 2;
     -moz-tab-size: 2;
+    resize: none; /* Disable resize handle */
+    box-sizing: border-box; /* Ensure padding and border are included in width */
 }
+
 
 #problemPrompt {
     height: auto;
@@ -28,7 +33,8 @@
 }
 
 #usercode {
-    width: calc(100% - 12px); /* 100% width minus left and right padding and border */
+    width: 100%; /* 100% width minus left and right padding and border */
+    box-sizing: border-box;
     border-width: 0px 1px 0px 1px;
     border-style: solid;
     border-color: #000;
