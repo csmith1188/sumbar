@@ -29,8 +29,8 @@
           <pre><%= problem.match %></pre>
           </p>
         </details>
-        <a href="/view/<%= problem.uid %>">View</a>
-        <a href="/remove/<%= problem.uid %>">Remove</a>
+        <button onclick="writeProblem(<%- problem.problem_id %>)">View</button>
+        <button onclick="">Remove</button>
       </div>
       <% }); %>
         <div id="addBox">
@@ -61,11 +61,15 @@
     const taskSelect = document.getElementById('taskSelect');
     const problemSelect = document.getElementById('problemSelect');
     const problemBox = document.getElementById('problemBox');
-    let problems = [];
+    let test = <%- JSON.stringify(test) %>;
+    let testProblems = <%- JSON.stringify(problems) %>;
+    let taskProblems = [];
     let problem = null;
 
-    problemSelect.addEventListener('change', () => {
-      if (problemSelect.value === 'new') {
+    function writeProblem(specific) {
+      if (specific) {
+        problem = taskProblems.find(p => p.uid == specific);
+      } else {
         problem = {
           course_id: courseSelect.value,
           unit_id: unitSelect.value,
@@ -78,8 +82,6 @@
           solution: 'A possible solution to the problem',
           match: 'The expected output of the user code'
         };
-      } else {
-        problem = problems.find(p => p.uid == problemSelect.value);
       }
 
       problemBox.innerHTML = '';
@@ -148,7 +150,10 @@
         problem.postcode = postcodeTextarea.value;
         problem.solution = solutionTextarea.value;
         problem.match = matchTextarea.value;
+        problem.index = taskProblems.length;
+        problem.test_id = test.uid;
         socket.emit('saveProblem', problem);
+        window.location.reload();
       });
 
       problemBox.appendChild(promptTextarea);
@@ -157,6 +162,11 @@
       problemBox.appendChild(postcodeTextarea);
       problemBox.appendChild(matchTextarea);
       problemBox.appendChild(saveButton);
+    }
+
+    problemSelect.addEventListener('change', () => {
+      if (problemSelect.value != 'new') writeProblem(problemSelect.value);
+      else writeProblem();
     });
 
     const socket = io();
@@ -221,9 +231,9 @@
         option.textContent = problem.prompt;
         problemSelect.appendChild(option);
       });
-      problems = data.problems;
+      taskProblems = data.problems;
     });
 
-    
+
   </script>
   <%- include('partials/foot') %>

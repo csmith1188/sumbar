@@ -107,8 +107,18 @@ const socketHandler = (socket) => {
 
     socket.on('saveProblem', (data) => {
         db.run(`INSERT OR REPLACE INTO problems (uid, task_id, language, prompt, precode, usercode, postcode, solution, match) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-            [data.uid, data.task_id, data.language, data.prompt, data.precode, data.usercode, data.postcode, data.solution, data.match]
-        );
+            [data.uid, data.task_id, data.language, data.prompt, data.precode, data.usercode, data.postcode, data.solution, data.match], function (err) {
+                if (err) {
+                    console.error(err);
+                    socket.emit('error', { error: err.message });
+                    return;
+                }
+                console.log(this.lastID);
+                
+                db.run('INSERT INTO testSelections (test_id, problem_id, sortOrder) VALUES (?, ?, ?)',
+                    [data.test_id, this.lastID, data.index]
+                )
+            });
     });
 
 }

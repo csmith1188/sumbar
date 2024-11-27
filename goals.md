@@ -5,10 +5,14 @@ Integrate with formbar to show progress over time
 - ~~db tables unit/course, questions~~
 - ~~secure running python~~
 - ~~tutd per question~~
+
+- edit test add/remove existing problems
+- edit problem to edit, test or create new problem
+- assign tests to students or class
+
 - student see own results
 - teacher see all results
-- teacher new question input
-- teacher makes tests per class
+- copy tests to classes
 - random/selected test
 - copy detector
 
