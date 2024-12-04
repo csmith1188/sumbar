@@ -6,9 +6,10 @@ Integrate with formbar to show progress over time
 - ~~secure running python~~
 - ~~tutd per question~~
 
-- edit test add/remove existing problems
+- ~~edit test add/remove existing problems~~
 - edit problem to edit, test or create new problem
-- assign tests to students or class
+- assign tests to students ~~or class~~
+- no matching id/test_id/class_code/user_id in assignments
 
 - student see own results
 - teacher see all results

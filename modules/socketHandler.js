@@ -114,11 +114,82 @@ const socketHandler = (socket) => {
                     return;
                 }
                 console.log(this.lastID);
-                
+
                 db.run('INSERT INTO testSelections (test_id, problem_id, sortOrder) VALUES (?, ?, ?)',
                     [data.test_id, this.lastID, data.index]
                 )
             });
+    });
+
+    socket.on('removeProblem', (data) => {
+        db.run('DELETE FROM testSelections WHERE test_id = ? AND problem_id = ?', [data.test, data.problem], (err) => {
+            if (err) {
+                console.error(err);
+                socket.emit('error', { error: err.message });
+                return;
+            }
+        });
+    });
+
+    socket.on('assignTest', (data) => {
+        db.run('INSERT INTO assignments (test_id, class_code) VALUES (?, ?)', [data.test, data.class], (err) => {
+            if (err) {
+                console.error(err);
+                socket.emit('error', { error: err.message });
+                return;
+            }
+        });
+    });
+
+    socket.on('unassignTest', (data) => {
+        db.run('DELETE FROM assignments WHERE test_id = ? AND class_code = ?', [data.test, data.class], (err) => {
+            if (err) {
+                console.error(err);
+                socket.emit('error', { error: err.message });
+                return;
+            }
+        });
+    });
+
+
+
+    socket.on('evalProblem', (data) => {
+        if (!data.usercode) {
+            return socket.emit('output', { error: "No code provided." });
+        }
+
+        const precode = data.precode + `\n`;
+        const postcode = data.postcode + `\n`;
+        const usercode = data.usercode + `\n`;
+
+        // Safe code to prevent malicious code execution
+        let safeCode = "import builtins\ndel builtins.input\ndel builtins.open\ndel builtins.exec\ndel builtins.eval\ndel builtins.compile\ndel builtins.__import__\n"
+
+        // Spawn a safe process
+        const pythonProcess = spawn("python", ["-c", safeCode + precode + usercode + postcode], { timeout: 5000 });
+
+        let output = "";
+        let error = "";
+
+        pythonProcess.stdout.on("data", (data) => {
+            output += data.toString();
+        });
+
+        pythonProcess.stderr.on("data", (data) => {
+            error += data.toString();
+        });
+
+        pythonProcess.on("close", (exitCode) => {
+            if (exitCode === 0) {
+                socket.emit('output', { output: output });
+            } else {
+                socket.emit('output', { error: error.trim() });
+            }
+        });
+
+        pythonProcess.on("error", (err) => {
+            socket.emit('output', { error: `Execution error: ${err.message}` });
+        });
     });
 
 }
